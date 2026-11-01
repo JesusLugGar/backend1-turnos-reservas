@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "name": "Corte de cabello",
+    "description": "Corte clásico o moderno con lavado incluido",
+    "duration": 30,
+    "price": 12000,
+    "category": "peluqueria",
+    "available": true
+  },
+  {
+    "id": 2,
+    "name": "Masaje descontracturante",
+    "description": "Masaje de espalda y cuello para aliviar tensiones",
+    "duration": 60,
+    "price": 35000,
+    "category": "spa",
+    "available": true
+  },
+  {
+    "id": 3,
+    "name": "Consulta nutricional",
+    "description": "Evaluación inicial y plan de alimentación personalizado",
+    "duration": 45,
+    "price": 28000,
+    "category": "salud",
+    "available": false
+  },
+  {
+    "id": 4,
+    "name": "Manicure semipermanente",
+    "description": "Limpieza, limado y esmaltado semipermanente",
+    "duration": 50,
+    "price": 18000,
+    "category": "estetica",
+    "available": true
+  },
+  {
+    "id": 5,
+    "name": "Clase de yoga personalizada",
+    "description": "Sesión individual adaptada a tu nivel",
+    "duration": 90,
+    "price": 25000,
+    "category": "bienestar",
+    "available": false
+  }
+]
