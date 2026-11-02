@@ -1,105 +1,107 @@
-import { readFile, writeFile } from 'fs/promises';
-
-const REQUIRED_FIELDS = ['name', 'description', 'duration', 'price', 'category', 'available'];
+import { readFile, writeFile } from "node:fs/promises";
 
 export default class ServiceManager {
-    constructor(databasePath) {
-        this.databasePath = databasePath;
+  constructor(databasePath) {
+    this.databasePath = databasePath;
+  }
+
+  async #save(services) {
+    await writeFile(this.databasePath, JSON.stringify(services, null, 2));
+  }
+
+  async getServices(filters = {}) {
+    const data = await readFile(this.databasePath, "utf-8");
+    let services = JSON.parse(data);
+
+    if (filters.category) {
+      services = services.filter(
+        (service) => service.category.toLowerCase() === filters.category.toLowerCase(),
+      );
     }
 
-    async #save(services) {
-        await writeFile(this.databasePath, JSON.stringify(services, null, 2));
+    if (filters.available !== undefined) {
+      const isAvailable = filters.available === "true";
+      services = services.filter((service) => service.available === isAvailable);
     }
 
-    async getServices() {
-        const data = await readFile(this.databasePath, 'utf-8');
-        return JSON.parse(data);
+    return services;
+  }
+
+  async getServiceById(idService) {
+    const services = await this.getServices();
+
+    const service = services.find((service) => service.id === Number(idService));
+
+    return service ?? null;
+  }
+
+  async addService(serviceData) {
+    const services = await this.getServices();
+
+    const id =
+      services.length > 0
+        ? Math.max(...services.map((service) => service.id)) + 1
+        : 1;
+
+    const newService = {
+      ...serviceData,
+      id,
+    };
+
+    services.push(newService);
+
+    await this.#save(services);
+
+    return {
+      payload: newService,
+      status: "success",
+    };
+  }
+
+  async updateService(idService, updatedServiceData = {}) {
+    const services = await this.getServices();
+
+    const servicePosition = services.findIndex(
+      (service) => service.id === Number(idService),
+    );
+
+    if (servicePosition === -1) {
+      return {
+        payload: null,
+        status: "error",
+        message: "Servicio no encontrado",
+      };
     }
 
-    async getServiceById(idService) {
-        const services = await this.getServices();
-        const service = services.find((service) => service.id === Number(idService));
+    const { id, ...dataToUpdate } = updatedServiceData;
 
-        return service ?? null;
+    services[servicePosition] = {
+      ...services[servicePosition],
+      ...dataToUpdate,
+      id: services[servicePosition].id,
+    };
+
+    await this.#save(services);
+
+    return {
+      payload: services[servicePosition],
+      status: "success",
+    };
+  }
+
+  async deleteService(idService) {
+    const services = await this.getServices();
+
+    const serviceToDelete = services.find((service) => service.id === Number(idService));
+
+    if (!serviceToDelete) {
+      return null;
     }
 
-    async addService(serviceData) {
-        const missingFields = REQUIRED_FIELDS.filter(
-            (field) => serviceData?.[field] === undefined || serviceData[field] === null || serviceData[field] === '',
-        );
+    const filteredServices = services.filter((service) => service.id !== Number(idService));
 
-        if (missingFields.length > 0) {
-            return {
-                payload: null,
-                status: 'error',
-                message: `Faltan campos obligatorios: ${missingFields.join(', ')}`,
-            };
-        }
+    await this.#save(filteredServices);
 
-        const services = await this.getServices();
-        const lastId = services.length > 0 ? services[services.length - 1].id : 0;
-
-        const { id, ...newServiceData } = serviceData;
-
-        const newService = {
-            id: lastId + 1,
-            ...newServiceData,
-        };
-
-        services.push(newService);
-        await this.#save(services);
-
-        return {
-            payload: newService,
-            status: 'success',
-        };
-    }
-
-    async updateService(idService, updatedServiceData) {
-        const services = await this.getServices();
-
-        const servicePosition = services.findIndex(
-            (service) => service.id === Number(idService),
-        );
-
-        if (servicePosition === -1) {
-            return {
-                payload: null,
-                status: 'error',
-                message: 'Servicio no encontrado',
-            };
-        }
-
-        const { id, ...dataToUpdate } = updatedServiceData;
-
-        services[servicePosition] = {
-            ...services[servicePosition],
-            ...dataToUpdate,
-            id: services[servicePosition].id,
-        };
-
-        await this.#save(services);
-
-        return {
-            payload: services[servicePosition],
-            status: 'success',
-        };
-    }
-
-    async deleteService(idService) {
-        const services = await this.getServices();
-
-        const servicePosition = services.findIndex(
-            (service) => service.id === Number(idService),
-        );
-
-        if (servicePosition === -1) {
-            return null;
-        }
-
-        const [deletedService] = services.splice(servicePosition, 1);
-        await this.#save(services);
-
-        return deletedService;
-    }
+    return serviceToDelete;
+  }
 }

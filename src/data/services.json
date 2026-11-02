@@ -43,5 +43,14 @@
     "price": 25000,
     "category": "bienestar",
     "available": false
+  },
+  {
+    "id": 6,
+    "name": "Peluqueria",
+    "description": "pelo 1",
+    "duration": 120,
+    "price": 25000,
+    "category": "Peluqueria",
+    "available": true
   }
 ]
